@@ -23,7 +23,7 @@ double acceleration(long double locationX, long double locationY, long double ve
 void newLocation(long double *location, long double *velocity);
 void newVelocity(long double *velocity, long double acceleration);
 void forwardEuler(long double *locationX, long double *locationY,long double *velocityX, long double *velocityY, double timeSteps);
-void readfile();
+void readfile(long double ** arr, File* inFile);
 
 double distance(long double locationX, long double locationY, double parameter)
 /**
@@ -118,14 +118,15 @@ void forwardEuler(long double *locationX, long double *locationY,long double *ve
 
 }
 
-void writesInOutputfile(long double locationX, long double locationY)
+void writesInOutputfile(File* outFile, long double locationX, long double locationY)
 /**
  * this function would take the outpu and add it o the outputfile and print it to the screen ?
  * @param locationX  the new location in the x axis
  * @param locationY  the new location in the y axis
  */
 {
-
+    fprintf(outFile, "<%d>,<%d>,",locationX,locationY);
+    return 0;
 }
 
 void readfile(long double ** arr, File* inFile)
@@ -215,6 +216,10 @@ void readfile(long double ** arr, File* inFile)
                 exit(-1);
             }
             //get the file input to variables then send them to funcuion
+            assert(*arVariables[5]!=0);
+            *timelabs = (*arVariables[4]) / (*arVariables[5]);
+            forwardEuler(*arVariables[0],*arVariables[1],*arVariables[2],*arVariables[3],*timelabs);
+            
         }
 
         fclose(inputFile);
