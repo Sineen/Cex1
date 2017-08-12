@@ -7,8 +7,8 @@
 #include <math.h>
 #include <assert.h>
 #include <stdlib.h>
-#definde TRUE = 1;
-#definde FALSE = 0;
+#define TRUE = 1;
+#define FALSE = 0;
 
 const double ALFA = 0.012299; // Moon mass / earth mass
 const double BETA = (0.012299 - 1);// we always use it the the function in -B form so I multiplied it here by -1 an dI will use it as +B in the functions when needed
@@ -19,11 +19,11 @@ long double *numberOfTimesToCheck; //n
 long double *prints;// m
 
 double distance(long double locationX, long double locationY, double parameter);
-double acceleration(long double locationX, long double locationY, long double velocity, int flag );
+long double acceleration(long double locationX, long double locationY, long double velocity, int isXAxis);
 void newLocation(long double *location, long double *velocity);
 void newVelocity(long double *velocity, long double acceleration);
-void forwardEuler(long double *locationX, long double *locationY,long double *velocityX, long double *velocityY, double timeSteps);
-void readfile(long double ** arr, File* inFile);
+int forwardEuler(long double *locationX, long double *locationY, long double *velocityX, long double *velocityY, long double timeSteps);
+int readfile(long double **arr[], FILE* inFile);
 
 double distance(long double locationX, long double locationY, double parameter)
 /**
@@ -37,7 +37,7 @@ double distance(long double locationX, long double locationY, double parameter)
     return (sqrt(pow(pow(locationX+parameter,2)+ pow(locationY,2),3)));
 }
 
-double acceleration(long double locationX, long double locationY, long double velocity, int isXAxis )
+long double acceleration(long double locationX, long double locationY, long double velocity, int isXAxis )
 /**
  *
  * @param locationX of the spaceship in the X axis
@@ -69,8 +69,8 @@ void newLocation(long double *location, long double *velocity)
  */
 {
     //return double new location  or maybe return 0 void and location = (location + ( velocity*timePassed)); return (location + ( velocity*timePassed));
-    *location = (*location + ( velocity*timelabs));
-    return 0;
+    *location = (*location + ( (long)velocity*(long)timelabs));
+   // return 0;
 }
 void newVelocity(long double *velocity, long double acceleration)
 /**
@@ -80,10 +80,10 @@ void newVelocity(long double *velocity, long double acceleration)
  * @return changes the speed to the new speed of the spaceship after specific time have passed
  */
 {
-    *velocity=(*velocity + (acceleration*timelabs));
-    return 0;
+    *velocity=(*velocity + ((double)acceleration * (long)timelabs));
+    //return 0;
 }
-void forwardEuler(long double *locationX, long double *locationY,long double *velocityX, long double *velocityY, double timeSteps)
+int forwardEuler(long double *locationX, long double *locationY,long double *velocityX, long double *velocityY, long double timeSteps)
 /**
  *
  * @param locationX of the spaceship in the X axis
@@ -101,6 +101,7 @@ void forwardEuler(long double *locationX, long double *locationY,long double *ve
     {
         return 0;
     }
+    //todo check pointers you changed it all so we change it every time then addes  teh pointer pointer array check
         // get the new location since its all in pointers the orginal var changes value
         newLocation(*locationX,*velocityX);
         newLocation(*locationY,*velocityY);
@@ -118,7 +119,7 @@ void forwardEuler(long double *locationX, long double *locationY,long double *ve
 
 }
 
-void writesInOutputfile(File* outFile, long double locationX, long double locationY)
+void writesInOutputfile(FILE* outFile, long double locationX, long double locationY)
 /**
  * this function would take the outpu and add it o the outputfile and print it to the screen ?
  * @param locationX  the new location in the x axis
@@ -129,7 +130,7 @@ void writesInOutputfile(File* outFile, long double locationX, long double locati
     return 0;
 }
 
-void readfile(long double ** arr, File* inFile)
+int readfile(long double **arr[], FILE* inFile)
 {
     int index =0 ;
     int decimalPoint=FALSE;
@@ -159,18 +160,18 @@ void readfile(long double ** arr, File* inFile)
             if (decimalPoint && afterDecimalPoint == 1) // deals with input like < 999. , 8, 9 , 9 >
             {
                 returnVal = -1;
-                fprintf(stdeff, "bad format input");
+                fprintf(stderr, "bad format input");
             }
             {
                 if (decimalPoint) {
                     decimalPoint = FALSE;
-                    arr[index] = array[index] / afterDecimalPoint;
+                    arr[index] = (long double *) ((long)arr[index] / afterDecimalPoint);
                 }
                 index++;
                 continue;
             }
         }
-            if( c == "\n")
+            if(c == (char) "\n")
             {
                 if (index < 4) // example <4 ,4 , 4>\n <4 ,4 ,4>
                 {
@@ -190,7 +191,7 @@ void readfile(long double ** arr, File* inFile)
             }
             else
             {
-                *(arr[index])= *(arr[index]) * 10  + c;
+                *(arr[index])= (long double *) ((long)*(arr[index]) * 10 + c);
             }
         }
         return (returnVal);
@@ -200,8 +201,8 @@ void readfile(long double ** arr, File* inFile)
     }
     int main(int argc, char **argv)
     {
-        File* inputFile = (argv[1],"r");
-        File* outputFile = (argv[2],"w");
+        FILE* inputFile = (argv[1],"r");
+        FILE* outputFile = (argv[2],"w");
         if (inputFile==NULL)
         {
             fprintf(stderr, "Error no input file");
@@ -212,12 +213,12 @@ void readfile(long double ** arr, File* inFile)
             long double **arVariables[7]={0,0,0,0,0,0,0}; // array with (0 location x, 1 location y , 2 velocityx, 3 velocity Y, 4 Time , 5 n , 6 m )
             int badInput = readfile(**arVariables,inputFile);
             if (badInput){
-                fprint(stderr, "bad input file ");
+                fprintf(stderr, "bad input file ");
                 exit(-1);
             }
             //get the file input to variables then send them to funcuion
             assert(*arVariables[5]!=0);
-            *timelabs = (*arVariables[4]) / (*arVariables[5]);
+            *timelabs = (long)(*arVariables[4]) /(long) (*arVariables[5]);
             forwardEuler(*arVariables[0],*arVariables[1],*arVariables[2],*arVariables[3],*timelabs);
             
         }
